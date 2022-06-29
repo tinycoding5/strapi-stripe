@@ -195,5 +195,64 @@ module.exports = ({ strapi }) => ({
 
     const account = await stripe.accounts.retrieve(accountId);
     return account;
+  },
+  async deleteAccount(accountId) {
+    const pluginStore = strapi.store({
+      environment: strapi.config.environment,
+      type: 'plugin',
+      name: 'strapi-stripe',
+    })
+
+    const stripeSettings = await pluginStore.get({ key: 'stripeSetting' });
+    let stripe;
+    if (stripeSettings.isLiveMode) {
+      stripe = new Stripe(stripeSettings.stripeLiveSecKey);
+    } else {
+      stripe = new Stripe(stripeSettings.stripeTestSecKey);
+    }
+    const deleted = await stripe.accounts.del(accountId);
+    return deleted;
+  },
+  async updateAccount(accountId, data) {
+    const pluginStore = strapi.store({
+      environment: strapi.config.environment,
+      type: 'plugin',
+      name: 'strapi-stripe',
+    })
+
+    const stripeSettings = await pluginStore.get({ key: 'stripeSetting' });
+    let stripe;
+    if (stripeSettings.isLiveMode) {
+      stripe = new Stripe(stripeSettings.stripeLiveSecKey);
+    } else {
+      stripe = new Stripe(stripeSettings.stripeTestSecKey);
+    }
+
+    const account = await stripe.accounts.update(accountId, data);
+    return account;
+  },
+  async accountLinks(accountId) {
+    const pluginStore = strapi.store({
+      environment: strapi.config.environment,
+      type: 'plugin',
+      name: 'strapi-stripe',
+    })
+
+    const stripeSettings = await pluginStore.get({ key: 'stripeSetting' });
+    let stripe;
+    if (stripeSettings.isLiveMode) {
+      stripe = new Stripe(stripeSettings.stripeLiveSecKey);
+    } else {
+      stripe = new Stripe(stripeSettings.stripeTestSecKey);
+    }
+
+    const accountLink = await stripe.accountLinks.create({
+      account: accountId,
+      refresh_url: stripeSettings.accountLinkRefreshUrl,
+      return_url: stripeSettings.accountLinkReturnUrl,
+      type: 'account_onboarding',
+    });
+
+    return accountLink;
   }
 });
