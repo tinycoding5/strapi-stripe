@@ -160,4 +160,40 @@ module.exports = ({ strapi }) => ({
     const session = await stripe.checkout.sessions.retrieve(checkoutSessionId);
     return session;
   },
+  async createAccount(type = 'express') {
+    const pluginStore = strapi.store({
+      environment: strapi.config.environment,
+      type: 'plugin',
+      name: 'strapi-stripe',
+    })
+
+    const stripeSettings = await pluginStore.get({ key: 'stripeSetting' });
+    let stripe;
+    if (stripeSettings.isLiveMode) {
+      stripe = new Stripe(stripeSettings.stripeLiveSecKey);
+    } else {
+      stripe = new Stripe(stripeSettings.stripeTestSecKey);
+    }
+
+    const account = await stripe.accounts.create({ type: type });
+    return account;
+  },
+  async retrieveAccount(accountId) {
+    const pluginStore = strapi.store({
+      environment: strapi.config.environment,
+      type: 'plugin',
+      name: 'strapi-stripe',
+    })
+
+    const stripeSettings = await pluginStore.get({ key: 'stripeSetting' });
+    let stripe;
+    if (stripeSettings.isLiveMode) {
+      stripe = new Stripe(stripeSettings.stripeLiveSecKey);
+    } else {
+      stripe = new Stripe(stripeSettings.stripeTestSecKey);
+    }
+
+    const account = await stripe.accounts.retrieve(accountId);
+    return account;
+  }
 });
