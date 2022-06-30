@@ -83,4 +83,44 @@ module.exports = [
       auth: false,
     },
   },
+  {
+    method: 'GET',
+    path: '/account/:accountId',
+    handler: 'stripeController.retrieveAccount',
+    config: {
+      auth: false,
+    },
+  },
+  {
+    method: 'POST',
+    path: '/account',
+    handler: 'stripeController.createAccount',
+    config: {
+      auth: false,
+    },
+  },
+  {
+    method: 'PUT',
+    path: '/account/:accountId',
+    handler: 'stripeController.updateAccount',
+    config: {
+      auth: false,
+    },
+  },
+  {
+    method: 'DELETE',
+    path: '/account/:accountId',
+    handler: 'stripeController.deleteAccount',
+    config: {
+      auth: false,
+    },
+  },
+  {
+    method: 'GET',
+    path: '/accountLinks/:accountId',
+    handler: 'stripeController.createAccountLink',
+    config: {
+      auth: false,
+    },
+  },
 ];

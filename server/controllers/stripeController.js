@@ -136,4 +136,49 @@ module.exports = {
     });
     return { payments, count };
   },
+  async createAccountLink(ctx) {
+    const { accountId } = ctx.params;
+    const accountLink = await strapi
+      .plugin('strapi-stripe')
+      .service('stripeService')
+      .accountLinks(accountId);
+    ctx.send(accountLink, 200);
+  },
+  async retrieveAccount(ctx) {
+    const { accountId } = ctx.params;
+    const accountLink = await strapi
+      .plugin('strapi-stripe')
+      .service('stripeService')
+      .retrieveAccount(accountId);
+    ctx.send(accountLink, 200);
+  },
+  async createAccount(ctx) {
+    const { type } = ctx.request.body;
+    const _type = type ? type : 'express';
+    const account = await strapi
+      .plugin('strapi-stripe')
+      .service('stripeService')
+      .createAccount(_type);
+
+    ctx.send(account, 200);
+  },
+  async updateAccount(ctx) {
+    const { accountId } = ctx.params;
+    const data = ctx.request.body;
+    const account = await strapi
+      .plugin('strapi-stripe')
+      .service('stripeService')
+      .updateAccount(accountId, data);
+
+    ctx.send(account, 200);
+  },
+  async deleteAccount(ctx) {
+    const { accountId } = ctx.params;
+    const account = await strapi
+      .plugin('strapi-stripe')
+      .service('stripeService')
+      .deleteAccount(accountId);
+
+    ctx.send(account, 200);
+  }
 };
