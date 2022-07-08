@@ -35,7 +35,8 @@ const Configuration = () => {
     checkoutCancelUrl: '',
     currency: undefined,
     accountLinkReturnUrl: '',
-    accountLinkRefreshUrl: ''
+    accountLinkRefreshUrl: '',
+    applicationFee: 0,
   });
 
   const [showAlert, setShowAlert] = useState(false);
@@ -50,7 +51,8 @@ const Configuration = () => {
     checkoutCancelUrl: '',
     currency: '',
     accountLinkReturnUrl: '',
-    accountLinkRefreshUrl: ''
+    accountLinkRefreshUrl: '',
+    applicationFee: ''
   });
 
   useEffect(() => {
@@ -68,7 +70,8 @@ const Configuration = () => {
           checkoutCancelUrl,
           currency,
           accountLinkReturnUrl,
-          accountLinkRefreshUrl
+          accountLinkRefreshUrl,
+          applicationFee
         } = response.data.response;
         setStripeConfiguration({
           ...stripeConfiguration,
@@ -81,7 +84,8 @@ const Configuration = () => {
           checkoutCancelUrl,
           currency,
           accountLinkReturnUrl,
-          accountLinkRefreshUrl
+          accountLinkRefreshUrl,
+          applicationFee
         });
       }
     })();
@@ -112,11 +116,14 @@ const Configuration = () => {
       setError({ ...error, accountLinkReturnUrl: '' });
     } else if (name === 'accountLinkRefreshUrl') {
       setError({ ...error, accountLinkRefreshUrl: '' });
+    } else if (name === 'applicationFee') {
+      setError({ ...error, applicationFee: '' });
     }
   };
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
+    const applicationFee = stripeConfiguration.applicationFee;
 
     if (
       !stripeConfiguration.stripeLivePubKey &&
@@ -194,6 +201,24 @@ const Configuration = () => {
       setError({
         ...error,
         accountLinkRefreshUrl: 'Account Onboarding Refresh URL is required',
+      });
+      setIsSubmitting(false);
+    } else if (applicationFee && isNaN(parseFloat(applicationFee))) {
+      setError({
+        ...error,
+        applicationFee: 'Invalid Percentage!',
+      });
+      setIsSubmitting(false);
+    } else if (applicationFee && parseFloat(applicationFee) < 0) {
+      setError({
+        ...error,
+        applicationFee: 'You can not add negative value!',
+      });
+      setIsSubmitting(false);
+    } else if (applicationFee && parseFloat(applicationFee) > 100) {
+      setError({
+        ...error,
+        applicationFee: 'Application fee can not be geater than 100%!',
       });
       setIsSubmitting(false);
     } else {
@@ -432,6 +457,19 @@ const Configuration = () => {
                         </Option>
                       ))}
                   </Select>
+                </Box>
+              </GridItem>
+              <GridItem col={6} s={12}>
+                <Box paddingTop={2} paddingBottom={2}>
+                  <TextInput
+                    name="applicationFee"
+                    label="Application Fee (%)"
+                    required
+                    value={stripeConfiguration.applicationFee}
+                    error={error.applicationFee ? error.applicationFee : ''}
+                    onChange={handleChange}
+                    hint="Application Account Fee percentage!"
+                  />
                 </Box>
               </GridItem>
             </Grid>

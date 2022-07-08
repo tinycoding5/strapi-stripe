@@ -12,7 +12,8 @@ module.exports = {
       checkoutCancelUrl,
       currency,
       accountLinkReturnUrl,
-      accountLinkRefreshUrl
+      accountLinkRefreshUrl,
+      applicationFee
     } = ctx.request.body.data;
 
     const pluginStore = strapi.store({
@@ -34,6 +35,7 @@ module.exports = {
         currency,
         accountLinkReturnUrl,
         accountLinkRefreshUrl,
+        applicationFee
       },
     });
     return ctx.send({ ok: true, response });

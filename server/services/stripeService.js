@@ -160,7 +160,7 @@ module.exports = ({ strapi }) => ({
     const session = await stripe.checkout.sessions.retrieve(checkoutSessionId);
     return session;
   },
-  async createAccount(type = 'express') {
+  async createAccount(accountType = 'express') {
     const pluginStore = strapi.store({
       environment: strapi.config.environment,
       type: 'plugin',
@@ -175,7 +175,7 @@ module.exports = ({ strapi }) => ({
       stripe = new Stripe(stripeSettings.stripeTestSecKey);
     }
 
-    const account = await stripe.accounts.create({ type: type });
+    const account = await stripe.accounts.create({ type: accountType });
     return account;
   },
   async retrieveAccount(accountId) {
@@ -254,5 +254,32 @@ module.exports = ({ strapi }) => ({
     });
 
     return accountLink;
+  },
+  async createPaymentIntent(amount, currency = 'usd', accountId) {
+    const pluginStore = strapi.store({
+      environment: strapi.config.environment,
+      type: 'plugin',
+      name: 'strapi-stripe',
+    });
+    const stripeSettings = await pluginStore.get({ key: 'stripeSetting' });
+    let stripe;
+    if (stripeSettings.isLiveMode) {
+      stripe = new Stripe(stripeSettings.stripeLiveSecKey);
+    } else {
+      stripe = new Stripe(stripeSettings.stripeTestSecKey);
+    }
+
+    const accountFee = parseFloat(stripeSettings.applicationFee) * amount / 100;
+
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: amount,
+      currency: currency,
+      application_fee_amount: accountFee,
+      transfer_data: {
+        destination: accountId,
+      },
+    });
+
+    return paymentIntent;
   }
 });
