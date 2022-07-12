@@ -275,8 +275,8 @@ module.exports = ({ strapi }) => ({
     const accountFee = parseFloat(stripeSettings.applicationFee) * amount / 100;
 
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: amount,
-      currency: currency,
+      amount,
+      currency,
       application_fee_amount: accountFee,
       transfer_data: {
         destination: accountId,
