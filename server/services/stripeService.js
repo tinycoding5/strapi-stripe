@@ -11,7 +11,8 @@ module.exports = ({ strapi }) => ({
     description,
     isSubscription,
     paymentInterval,
-    trialPeriodDays
+    trialPeriodDays,
+    priceCurrency = ''
   ) {
     const pluginStore = strapi.store({
       environment: strapi.config.environment,
@@ -32,6 +33,8 @@ module.exports = ({ strapi }) => ({
       description,
       images: [imageUrl],
     });
+    
+    const currency = priceCurrency ? priceCurrency : stripeSettings.currency;
 
     const createproduct = async (productId, priceId, planId) => {
       const create = await strapi.query('plugin::strapi-stripe.strapi-stripe-product').create({
@@ -39,7 +42,7 @@ module.exports = ({ strapi }) => ({
           title,
           description,
           price: productPrice,
-          currency: stripeSettings.currency,
+          currency,
           productImage: imageId,
           isSubscription,
           interval: paymentInterval,
