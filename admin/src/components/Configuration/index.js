@@ -203,7 +203,7 @@ const Configuration = () => {
         accountLinkRefreshUrl: 'Account Onboarding Refresh URL is required',
       });
       setIsSubmitting(false);
-    } else if (applicationFee && isNaN(parseFloat(applicationFee))) {
+    } else if (applicationFee && Number.isNaN(parseFloat(applicationFee))) {
       setError({
         ...error,
         applicationFee: 'Invalid Percentage!',
