@@ -59,7 +59,7 @@ module.exports = ({ strapi }) => ({
     if (isSubscription) {
       const plan = await stripe.plans.create({
         amount: productPrice * 100,
-        currency: stripeSettings.currency,
+        currency,
         interval: paymentInterval,
         product: product.id,
         trial_period_days: trialPeriodDays,
@@ -68,7 +68,7 @@ module.exports = ({ strapi }) => ({
     } else {
       const price = await stripe.prices.create({
         unit_amount: productPrice * 100,
-        currency: stripeSettings.currency,
+        currency,
         product: product.id,
       });
       createproduct(product.id, price.id, '');
