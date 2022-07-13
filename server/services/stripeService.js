@@ -28,12 +28,21 @@ module.exports = ({ strapi }) => ({
       stripe = new Stripe(stripeSettings.stripeTestSecKey);
     }
 
-    const product = await stripe.products.create({
-      name: title,
-      description,
-      images: [imageUrl],
-    });
-    
+    let product;
+    if (imageUrl) {
+      product = await stripe.products.create({
+        name: title,
+        description,
+        images: [imageUrl],
+      });
+    } else {
+      product = await stripe.products.create({
+        name: title,
+        description
+      });
+    }
+
+
     const currency = priceCurrency ? priceCurrency : stripeSettings.currency;
 
     const createproduct = async (productId, priceId, planId) => {
@@ -89,22 +98,44 @@ module.exports = ({ strapi }) => ({
       stripe = new Stripe(stripeSettings.stripeTestSecKey);
     }
 
-    await stripe.products.update(stripeProductId, {
-      name: title,
-      description,
-      images: [url],
-    });
-    const updateProductResponse = await strapi
-      .query('plugin::strapi-stripe.strapi-stripe-product')
-      .update({
-        where: { id },
-        data: {
-          title,
-          description,
-          productImage,
-        },
+    if (url) {
+      await stripe.products.update(stripeProductId, {
+        name: title,
+        description,
+        images: [url],
       });
-    return updateProductResponse;
+    } else {
+      await stripe.products.update(stripeProductId, {
+        name: title,
+        description
+      });
+    }
+
+    if (productImage && productImage.id) {
+      const updateProductResponse = await strapi
+        .query('plugin::strapi-stripe.strapi-stripe-product')
+        .update({
+          where: { id },
+          data: {
+            title,
+            description,
+            productImage,
+          },
+        });
+      return updateProductResponse;
+    } else {
+      const updateProductResponse = await strapi
+        .query('plugin::strapi-stripe.strapi-stripe-product')
+        .update({
+          where: { id },
+          data: {
+            title,
+            description
+          },
+        });
+      return updateProductResponse;
+    }
+
   },
   async createCheckoutSession(stripePriceId, stripePlanId, isSubscription, productId, productName) {
     const pluginStore = strapi.store({
