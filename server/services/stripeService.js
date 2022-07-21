@@ -178,7 +178,7 @@ module.exports = ({ strapi }) => ({
     });
     return session;
   },
-  async createConnectedCheckoutSession(isSubscription, productId, productName, amount, currency = 'usd', accountId) {
+  async createConnectedCheckoutSession(isSubscription, productId, productName, amount, currency = 'usd', accountId, courseId) {
     const pluginStore = strapi.store({
       environment: strapi.config.environment,
       type: 'plugin',
@@ -220,6 +220,7 @@ module.exports = ({ strapi }) => ({
       metadata: {
         productId: `${productId}`,
         productName: `${productName}`,
+        courseId: `${courseId}`
       },
     }, {
       stripeAccount: `${accountId}`,
