@@ -137,6 +137,23 @@ module.exports = ({ strapi }) => ({
     }
 
   },
+  async retrieveProduct(productId) {
+    const pluginStore = strapi.store({
+      environment: strapi.config.environment,
+      type: 'plugin',
+      name: 'strapi-stripe',
+    });
+    const stripeSettings = await pluginStore.get({ key: 'stripeSetting' });
+    let stripe;
+    if (stripeSettings.isLiveMode) {
+      stripe = new Stripe(stripeSettings.stripeLiveSecKey);
+    } else {
+      stripe = new Stripe(stripeSettings.stripeTestSecKey);
+    }
+
+    const product = await stripe.products.retrieve(productId);
+    return product;
+  },
   async createCheckoutSession(stripePriceId, stripePlanId, isSubscription, productId, productName) {
     const pluginStore = strapi.store({
       environment: strapi.config.environment,
