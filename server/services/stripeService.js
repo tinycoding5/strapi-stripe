@@ -243,11 +243,18 @@ module.exports = ({ strapi }) => ({
     } else {
       const session = await stripe.checkout.sessions.create({
         line_items: [{
-          price_data: {
-            currency,
-            product: productId,
-            unit_amount: amount,
+          data: {
+            price: {
+              product: productId,
+              currency,
+              unit_amount: amount,
+            }
           },
+          // price_data: {
+          //   currency,
+          //   product: productId,
+          //   unit_amount: amount,
+          // },
           quantity: 1,
         }],
         mode: paymentMode,
