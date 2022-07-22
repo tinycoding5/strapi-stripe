@@ -195,7 +195,7 @@ module.exports = ({ strapi }) => ({
     });
     return session;
   },
-  async createConnectedCheckoutSession(isSubscription, productId, productName, amount, currency = 'usd', accountId, courseId) {
+  async createConnectedCheckoutSession(isSubscription, productId, productName, amount, currency = 'usd', accountId, courseId, priceId = '') {
     const pluginStore = strapi.store({
       environment: strapi.config.environment,
       type: 'plugin',
@@ -217,33 +217,57 @@ module.exports = ({ strapi }) => ({
 
     const applicationFee = parseFloat(amount) * parseFloat(stripeSettings.applicationFee) / 100;
 
-
-    const session = await stripe.checkout.sessions.create({
-      line_items: [{
-        price_data: {
-          currency,
-          product: productId,
-          unit_amount: amount,
+    if (priceId) {
+      const session = await stripe.checkout.sessions.create({
+        line_items: [{
+          price: priceId,
+          quantity: 1,
+        }],
+        mode: paymentMode,
+        payment_method_types: ['card'],
+        success_url: `${stripeSettings.checkoutSuccessUrl}?sessionId={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${stripeSettings.checkoutCancelUrl}`,
+        payment_intent_data: {
+          application_fee_amount: applicationFee,
         },
-        quantity: 1,
-      }],
-      mode: paymentMode,
-      payment_method_types: ['card'],
-      success_url: `${stripeSettings.checkoutSuccessUrl}?sessionId={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${stripeSettings.checkoutCancelUrl}`,
-      payment_intent_data: {
-        application_fee_amount: applicationFee,
-      },
-      metadata: {
-        productId: `${productId}`,
-        productName: `${productName}`,
-        courseId: `${courseId}`
-      },
-    }, {
-      stripeAccount: `${accountId}`,
-    });
+        metadata: {
+          productId: `${productId}`,
+          productName: `${productName}`,
+          courseId: `${courseId}`
+        },
+      }, {
+        stripeAccount: `${accountId}`,
+      });
 
-    return session;
+      return session;
+    } else {
+      const session = await stripe.checkout.sessions.create({
+        line_items: [{
+          price_data: {
+            currency,
+            product: productId,
+            unit_amount: amount,
+          },
+          quantity: 1,
+        }],
+        mode: paymentMode,
+        payment_method_types: ['card'],
+        success_url: `${stripeSettings.checkoutSuccessUrl}?sessionId={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${stripeSettings.checkoutCancelUrl}`,
+        payment_intent_data: {
+          application_fee_amount: applicationFee,
+        },
+        metadata: {
+          productId: `${productId}`,
+          productName: `${productName}`,
+          courseId: `${courseId}`
+        },
+      }, {
+        stripeAccount: `${accountId}`,
+      });
+
+      return session;
+    }
   },
   async retrieveCheckoutSession(checkoutSessionId) {
     const pluginStore = strapi.store({
