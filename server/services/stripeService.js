@@ -12,7 +12,8 @@ module.exports = ({ strapi }) => ({
     isSubscription,
     paymentInterval,
     trialPeriodDays,
-    priceCurrency = ''
+    priceCurrency = '',
+    accountId = '',
   ) {
     const pluginStore = strapi.store({
       environment: strapi.config.environment,
@@ -30,16 +31,35 @@ module.exports = ({ strapi }) => ({
 
     let product;
     if (imageUrl) {
-      product = await stripe.products.create({
-        name: title,
-        description,
-        images: [imageUrl],
-      });
+      if (accountId) {
+        product = await stripe.products.create({
+          name: title,
+          description,
+          images: [imageUrl],
+        }, {
+          stripeAccount: accountId
+        });
+      } else {
+        product = await stripe.products.create({
+          name: title,
+          description,
+          images: [imageUrl],
+        });
+      }
     } else {
-      product = await stripe.products.create({
-        name: title,
-        description
-      });
+      if (accountId) {
+        product = await stripe.products.create({
+          name: title,
+          description
+        }, {
+          stripeAccount: accountId
+        });
+      } else {
+        product = await stripe.products.create({
+          name: title,
+          description
+        });
+      }
     }
 
 
@@ -84,7 +104,7 @@ module.exports = ({ strapi }) => ({
     }
     return product;
   },
-  async updateProduct(id, title, url, description, productImage, stripeProductId) {
+  async updateProduct(id, title, url, description, productImage, stripeProductId, accountId = '') {
     const pluginStore = strapi.store({
       environment: strapi.config.environment,
       type: 'plugin',
@@ -99,16 +119,35 @@ module.exports = ({ strapi }) => ({
     }
 
     if (url) {
-      await stripe.products.update(stripeProductId, {
-        name: title,
-        description,
-        images: [url],
-      });
+      if (accountId) {
+        await stripe.products.update(stripeProductId, {
+          name: title,
+          description,
+          images: [url],
+        }, {
+          stripeAccount: accountId
+        });
+      } else {
+        await stripe.products.update(stripeProductId, {
+          name: title,
+          description,
+          images: [url],
+        });
+      }
     } else {
-      await stripe.products.update(stripeProductId, {
-        name: title,
-        description
-      });
+      if (accountId) {
+        await stripe.products.update(stripeProductId, {
+          name: title,
+          description
+        }, {
+          stripeAccount: accountId
+        });
+      } else {
+        await stripe.products.update(stripeProductId, {
+          name: title,
+          description
+        });
+      }
     }
 
     if (productImage && productImage.id) {
@@ -410,5 +449,22 @@ module.exports = ({ strapi }) => ({
     });
 
     return paymentIntent;
+  },
+  async createConnectedAccountLoginLink(accountId) {
+    const pluginStore = strapi.store({
+      environment: strapi.config.environment,
+      type: 'plugin',
+      name: 'strapi-stripe',
+    });
+    const stripeSettings = await pluginStore.get({ key: 'stripeSetting' });
+    let stripe;
+    if (stripeSettings.isLiveMode) {
+      stripe = new Stripe(stripeSettings.stripeLiveSecKey);
+    } else {
+      stripe = new Stripe(stripeSettings.stripeTestSecKey);
+    }
+
+    const loginLink = await stripe.accounts.createLoginLink(accountId);
+    return loginLink;
   }
 });
