@@ -442,7 +442,7 @@ module.exports = ({ strapi }) => ({
       return session;
     }
   },
-  async retrieveCheckoutSession(checkoutSessionId) {
+  async retrieveCheckoutSession(checkoutSessionId, accountId = '') {
     const pluginStore = strapi.store({
       environment: strapi.config.environment,
       type: 'plugin',
@@ -455,7 +455,12 @@ module.exports = ({ strapi }) => ({
     } else {
       stripe = new Stripe(stripeSettings.stripeTestSecKey);
     }
-    const session = await stripe.checkout.sessions.retrieve(checkoutSessionId);
+    let session;
+    if (accountId) {
+      session = await stripe.checkout.sessions.retrieve(checkoutSessionId, { stripeAccount: accountId });
+    } else {
+      session = await stripe.checkout.sessions.retrieve(checkoutSessionId);
+    }
     return session;
   },
   async createAccount(accountType = 'express') {
