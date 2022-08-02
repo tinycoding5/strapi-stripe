@@ -86,20 +86,46 @@ module.exports = ({ strapi }) => ({
     };
 
     if (isSubscription) {
-      const plan = await stripe.plans.create({
-        amount: productPrice * 100,
-        currency,
-        interval: paymentInterval,
-        product: product.id,
-        trial_period_days: trialPeriodDays,
-      });
+      let plan;
+      if (accountId) {
+        plan = await stripe.plans.create({
+          amount: productPrice * 100,
+          currency,
+          interval: paymentInterval,
+          product: product.id,
+          trial_period_days: trialPeriodDays,
+        }, {
+          stripeAccount: accountId
+        });
+      } else {
+        plan = await stripe.plans.create({
+          amount: productPrice * 100,
+          currency,
+          interval: paymentInterval,
+          product: product.id,
+          trial_period_days: trialPeriodDays,
+        });
+      }
+
       createproduct(product.id, '', plan.id);
     } else {
-      const price = await stripe.prices.create({
-        unit_amount: productPrice * 100,
-        currency,
-        product: product.id,
-      });
+      let price;
+      if (accountId) {
+        price = await stripe.prices.create({
+          unit_amount: productPrice * 100,
+          currency,
+          product: product.id,
+        }, {
+          stripeAccount: accountId
+        });
+      } else {
+        price = await stripe.prices.create({
+          unit_amount: productPrice * 100,
+          currency,
+          product: product.id,
+        });
+      }
+
       createproduct(product.id, price.id, '');
     }
     return product;
@@ -277,6 +303,8 @@ module.exports = ({ strapi }) => ({
           productName: `${productName}`,
           courseId: `${courseId}`
         },
+      }, {
+        stripeAccount: accountId
       });
 
       return session;
@@ -307,6 +335,8 @@ module.exports = ({ strapi }) => ({
           productName: `${productName}`,
           courseId: `${courseId}`
         },
+      }, {
+        stripeAccount: accountId
       });
 
       return session;
