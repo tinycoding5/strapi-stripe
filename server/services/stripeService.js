@@ -192,9 +192,8 @@ module.exports = ({ strapi }) => ({
     const currency = priceCurrency ? priceCurrency : stripeSettings.currency;
 
     if (isSubscription) {
-      let plan;
       if (accountId) {
-        plan = await stripe.plans.create({
+        await stripe.plans.create({
           amount: productPrice * 100,
           currency,
           interval: paymentInterval,
@@ -204,7 +203,7 @@ module.exports = ({ strapi }) => ({
           stripeAccount: accountId
         });
       } else {
-        plan = await stripe.plans.create({
+        await stripe.plans.create({
           amount: productPrice * 100,
           currency,
           interval: paymentInterval,
@@ -213,9 +212,8 @@ module.exports = ({ strapi }) => ({
         });
       }
     } else {
-      let price;
       if (accountId) {
-        price = await stripe.prices.create({
+        await stripe.prices.create({
           unit_amount: productPrice * 100,
           currency,
           product: product.id,
@@ -223,7 +221,7 @@ module.exports = ({ strapi }) => ({
           stripeAccount: accountId
         });
       } else {
-        price = await stripe.prices.create({
+        await stripe.prices.create({
           unit_amount: productPrice * 100,
           currency,
           product: product.id,
