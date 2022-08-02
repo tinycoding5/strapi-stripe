@@ -130,6 +130,108 @@ module.exports = ({ strapi }) => ({
     }
     return product;
   },
+  async createProductOnAccount(
+    title,
+    productPrice,
+    imageId,
+    imageUrl,
+    description,
+    isSubscription,
+    paymentInterval,
+    trialPeriodDays,
+    priceCurrency = '',
+    accountId,
+  ) {
+    const pluginStore = strapi.store({
+      environment: strapi.config.environment,
+      type: 'plugin',
+      name: 'strapi-stripe',
+    });
+
+    const stripeSettings = await pluginStore.get({ key: 'stripeSetting' });
+    let stripe;
+    if (stripeSettings.isLiveMode) {
+      stripe = new Stripe(stripeSettings.stripeLiveSecKey);
+    } else {
+      stripe = new Stripe(stripeSettings.stripeTestSecKey);
+    }
+
+    let product;
+    if (imageUrl) {
+      if (accountId) {
+        product = await stripe.products.create({
+          name: title,
+          description,
+          images: [imageUrl],
+        }, {
+          stripeAccount: accountId
+        });
+      } else {
+        product = await stripe.products.create({
+          name: title,
+          description,
+          images: [imageUrl],
+        });
+      }
+    } else {
+      if (accountId) {
+        product = await stripe.products.create({
+          name: title,
+          description
+        }, {
+          stripeAccount: accountId
+        });
+      } else {
+        product = await stripe.products.create({
+          name: title,
+          description
+        });
+      }
+    }
+
+    const currency = priceCurrency ? priceCurrency : stripeSettings.currency;
+
+    if (isSubscription) {
+      let plan;
+      if (accountId) {
+        plan = await stripe.plans.create({
+          amount: productPrice * 100,
+          currency,
+          interval: paymentInterval,
+          product: product.id,
+          trial_period_days: trialPeriodDays,
+        }, {
+          stripeAccount: accountId
+        });
+      } else {
+        plan = await stripe.plans.create({
+          amount: productPrice * 100,
+          currency,
+          interval: paymentInterval,
+          product: product.id,
+          trial_period_days: trialPeriodDays,
+        });
+      }
+    } else {
+      let price;
+      if (accountId) {
+        price = await stripe.prices.create({
+          unit_amount: productPrice * 100,
+          currency,
+          product: product.id,
+        }, {
+          stripeAccount: accountId
+        });
+      } else {
+        price = await stripe.prices.create({
+          unit_amount: productPrice * 100,
+          currency,
+          product: product.id,
+        });
+      }
+    }
+    return product;
+  },
   async updateProduct(id, title, url, description, productImage, stripeProductId, accountId = '') {
     const pluginStore = strapi.store({
       environment: strapi.config.environment,
