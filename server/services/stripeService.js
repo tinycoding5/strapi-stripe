@@ -394,9 +394,9 @@ module.exports = ({ strapi }) => ({
         cancel_url: `${stripeSettings.checkoutCancelUrl}`,
         payment_intent_data: {
           application_fee_amount: applicationFee,
-          transfer_data: {
-            destination: `${accountId}`,
-          },
+          // transfer_data: {
+          //   destination: `${accountId}`,
+          // },
         },
         metadata: {
           productId: `${productId}`,
@@ -426,9 +426,9 @@ module.exports = ({ strapi }) => ({
         cancel_url: `${stripeSettings.checkoutCancelUrl}`,
         payment_intent_data: {
           application_fee_amount: applicationFee,
-          transfer_data: {
-            destination: `${accountId}`,
-          },
+          // transfer_data: {
+          //   destination: `${accountId}`,
+          // },
         },
         metadata: {
           productId: `${productId}`,
@@ -473,7 +473,13 @@ module.exports = ({ strapi }) => ({
       stripe = new Stripe(stripeSettings.stripeTestSecKey);
     }
 
-    const account = await stripe.accounts.create({ type: accountType });
+    const account = await stripe.accounts.create({
+      type: accountType,
+      capabilities: {
+        card_payments: { requested: true },
+        transfers: { requested: true },
+      },
+    });
     return account;
   },
   async retrieveAccount(accountId) {
